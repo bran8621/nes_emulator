@@ -1,4 +1,4 @@
-use bytes::Bytes;
+//use bytes::Bytes;
 use std::convert::TryFrom;
 
 const NES_TAG: [u8; 4] = [0x4E, 0x45, 0x53, 0x1A];
@@ -21,8 +21,8 @@ pub struct Rom {
 
 impl Rom {
     pub fn new(raw: &[u8]) -> Result<Rom, String> {
-        if !Bytes::from(&raw[0..4]).eq_slice(&NES_TAG) {
-            return Err("Not a valid iNES file format".to_string());
+        if !raw.starts_with(&NES_TAG) {
+            return Err("Not an iNES file".to_string());
         }
 
         let mapper = (raw[7] & 0b1111_0000) | (raw[6] >> 4);
@@ -52,8 +52,8 @@ impl Rom {
     }
 }
 
-#[cfg(test)]
-mod test {
+
+pub mod test {
     use super::*;
 
     struct TestRom {

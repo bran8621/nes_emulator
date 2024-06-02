@@ -1,4 +1,5 @@
 use crate::cpu::Mem;
+use crate::cartridge::Rom;
 
 const RAM: u16 = 0x0000;
 const RAM_MIRRORS_END: u16 = 0x1FFF;
@@ -11,15 +12,27 @@ const PPU_REGISTERS_MIRRORS_END: u16 = 0x3FFF;
 
 pub struct Bus{
     cpu_vram: [u8; 2048],
+    rom: Rom,
 }
 
+
 impl Bus{
-    pub fn new() -> Self{
-        Bus{
+    pub fn new(rom: Rom) -> Self{
+        Self{
             cpu_vram: [0; 2048],
+            rom
         }
     }
+    fn read_prg_rom(&self, mut addr: u16) -> u8 {
+        addr -= 0x8000;
+        if self.rom.prg_rom.len() == 0x4000 && addr >= 0x4000 {
+            //mirror if needed
+            addr = addr % 0x4000;
+        }
+        self.rom.prg_rom[addr as usize]
+    }
 }
+
 
 impl Mem for Bus{
     fn mem_read(&self, addr: u16) -> u8{
@@ -32,6 +45,7 @@ impl Mem for Bus{
                 let _mirror_down_addr = addr & 0b0000_0111_1111_1111;
                 todo!("Implement the PPU")
             }
+            0x8000..=0xFFFF => self.read_prg_rom(addr),
             _ => {
                 println!("Attempted to read from write only address {:x}", addr);
                 0
