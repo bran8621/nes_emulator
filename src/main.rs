@@ -1,13 +1,20 @@
 pub mod cpu;
 pub mod opcodes;
+pub mod bus; 
+
 use cpu::Mem;
 use cpu::CPU;
+use bus::Bus;
+
 use rand::Rng;
+
 use sdl2::event::Event;
 use sdl2::EventPump;
 use sdl2::keyboard::Keycode;
 use sdl2::pixels::Color;
 use sdl2::pixels::PixelFormatEnum;
+
+use std::time::Duration;
 
 
 #[macro_use]
@@ -31,18 +38,16 @@ fn color(byte: u8) -> Color {
 }
 
 fn read_screen_state(cpu: &CPU, frame: &mut [u8; 32 * 3 * 32]) -> bool {
-    let mut frame_idx = 0;
     let mut update = false;
-    for i in 0x0200..0x600 {
+    for (i, pixel) in (0x0200..0x600).zip(frame.chunks_mut(3)) {
         let color_idx = cpu.mem_read(i as u16);
         let (b1, b2, b3) = color(color_idx).rgb();
-        if frame[frame_idx] != b1 || frame[frame_idx + 1] != b2 || frame[frame_idx + 2] != b3 {
-            frame[frame_idx] = b1;
-            frame[frame_idx + 1] = b2;
-            frame[frame_idx + 2] = b3;
+        if pixel[0] != b1 || pixel[1] != b2 || pixel[2] != b3 {
+            pixel[0] = b1;
+            pixel[1] = b2;
+            pixel[2] = b3;
             update = true;
         }
-        frame_idx += 3;
     }
     update
 }
@@ -114,7 +119,8 @@ fn main() {
 
 
     //load the game
-    let mut cpu = CPU::new();
+    let bus = Bus::new();
+    let mut cpu = CPU::new(bus);
     cpu.load(game_code);
     cpu.reset();
 
