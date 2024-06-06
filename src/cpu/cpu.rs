@@ -209,8 +209,7 @@ impl CPU {
     }
 
     fn load_data_and_update_flags(&mut self, mode: &AddressingMode, target: &mut u8) {
-        let (addr, page_cross) = self.get_operand_address(mode);
-        let data = self.mem_read(addr);
+        let (addr, page_cross) = self.get_operand_address(mode)
     }
 
     fn perform_operation_and_update_flags<F>(&mut self, mode: &AddressingMode, operation: F)
