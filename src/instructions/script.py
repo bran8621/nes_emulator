@@ -16,10 +16,11 @@ def write_to_file(function_dict, op_dict, file_path):
 
     with open(file_path, "a") as f:
         file_ops = op_dict.get(file_name)
-        for op in file_ops:
-            if op in function_dict:
-                f.write(function_dict[op])
-        f.write("\n")
+        if file_ops:
+            for op in file_ops:
+                if op in function_dict:
+                    f.write(function_dict[op])
+            f.write("\n")
 
 
 def extract_functions(file_content, function_names):
@@ -72,4 +73,7 @@ function_dict = extract_functions(
     open(os.getcwd() + "/nes_emulator/src/cpu/cpu.rs").read(), function_names
 )
 
-with os.scandir
+with os.scandir(dir) as entries:
+    for entry in entries:
+        if entry.is_file():
+            write_to_file(function_dict, op_dict, entry.path)

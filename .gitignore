@@ -1,1 +1,50 @@
-/target
+# Binaries for programs and libraries
+*.exe
+*.exe~
+*.dll
+*.dylib
+*.so
+
+# Test binary, built with `cargo test`
+*.test
+
+# Rust specific
+target/
+**/target/
+*.rs.bk
+
+# Build artifacts
+debug/
+release/
+
+# Output of cargo's `cargo install` command
+.cargo-install
+
+# Optional IDE configuration files
+.idea/
+.vscode/
+
+# Optional editors
+*.swp
+*.swo
+*~
+.*.s[a-v][a-z]
+.*.sw[a-p]
+
+# Optional OS files
+.DS_Store
+Thumbs.db
+
+# rustfmt and clippy related files
+rustfmt.toml
+.clippy.toml
+
+# Documentation and lock files
+doc/
+*.lock
+
+# Build scripts output
+build.rs
+
+# Other optional files
+*.log
