@@ -26,6 +26,7 @@ fn sbc(&mut self, mode: &AddressingMode) {
 fn compare(&mut self, mode: &AddressingMode, compare_with: u8) {
         let addr = self.get_operand_address(mode);
         let data = self.mem_read(addr);
+        
         if data <= compare_with {
             self.status.insert(CpuFlags::CARRY);
         } else {
