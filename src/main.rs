@@ -2,11 +2,13 @@ pub mod cpu;
 pub mod opcodes;
 pub mod bus; 
 pub mod cartridge;
+pub mod instructions;
 
-use cpu::Mem;
+use crate::CPU::cpu::Mem;
 use cpu::CPU;
 use cartridge::Rom;
 use bus::Bus;
+
 
 use rand::Rng;
 
