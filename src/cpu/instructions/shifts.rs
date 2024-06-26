@@ -5,112 +5,113 @@ ROL: rotate left
 ROR: rotate right
 */
 
+use crate::cpu::CPU;
 
-fn asl(&mut self, mode: &AddressingMode) {
-    let addr = self.get_operand_address(mode);
-    let mut data: u8 = self.mem_read(addr);
+fn asl(cpu: &mut CPU, mode: &AddressingMode) {
+    let addr = cpu.get_operand_address(mode);
+    let mut data: u8 = cpu.mem_read(addr);
 }
 
-fn asl_accumulator(&mut self){
-    let mut data: u8 = self.register_a;
+fn asl_accumulator(cpu: &mut CPU){
+    let mut data: u8 = cpu.register_a;
     if data >> 7 == 1{
-        self.set_carry_flag();
+        cpu.set_carry_flag();
     }else{
-        self.clear_carry_flag();
+        cpu.clear_carry_flag();
     }
 }
 
-fn lsr(&mut self, mode: &AddressingMode) {
-    let addr = self.get_operand_address(mode);
-    let mut data: u8 = self.mem_read(addr);
+fn lsr(cpu: &mut CPU, mode: &AddressingMode) {
+    let addr = cpu.get_operand_address(mode);
+    let mut data: u8 = cpu.mem_read(addr);
     if data & 1 == 1{
-        self.set_carry_flag();
+        cpu.set_carry_flag();
     }else{
-        self.clear_carry_flag();
+        cpu.clear_carry_flag();
     }
 
     data = data >> 1;
-    self.mem_write(addr, data);
-    self.update_zero_and_negative_flags(data);
+    cpu.mem_write(addr, data);
+    cpu.update_zero_and_negative_flags(data);
     data
 }
 
-fn lsr_accumulator(&mut self){
-    let mut data: u8 = self.register_a;
+fn lsr_accumulator(cpu: &mut CPU){
+    let mut data: u8 = cpu.register_a;
     if data & 1 == 1{
-        self.set_carry_flag();
+        cpu.set_carry_flag();
     }else{
-        self.clear_carry_flag();
+        cpu.clear_carry_flag();
     }
 
     data = data >> 1;
-    self.set_register_a(data);
+    cpu.set_register_a(data);
 }
 
-fn rol(&mut self, mode: &AddressingMode) {
-    let addr = self.get_operand_address(mode);
-    let mut data: u8 = self.mem_read(addr);
-    let carry: bool = self.status.contains(CpuFlags::CARRY);
+fn rol(cpu: &mut CPU, mode: &AddressingMode) {
+    let addr = cpu.get_operand_address(mode);
+    let mut data: u8 = cpu.mem_read(addr);
+    let carry: bool = cpu.status.contains(CpuFlags::CARRY);
     if data >> 7 == 1{
-        self.set_carry_flag();
+        cpu.set_carry_flag();
     }else{
-        self.clear_carry_flag();
+        cpu.clear_carry_flag();
     }
     data = data << 1;
     if carry{
         data = data | 1;
     }
-    self.mem_write(addr, data);
-    self.update_negative_flags(data);
+    cpu.mem_write(addr, data);
+    cpu.update_negative_flags(data);
     data
 }
 
-fn rol_accumulator(&mut self){
-    let mut data: u8 = self.register_a;
-    let carry: bool = self.status.contains(CpuFlags::CARRY);
+fn rol_accumulator(cpu: &mut CPU){
+    let mut data: u8 = cpu.register_a;
+    let carry: bool = cpu.status.contains(CpuFlags::CARRY);
     if data >> 7 == 1{
-        self.set_carry_flag();
+        cpu.set_carry_flag();
     }else{
-        self.clear_carry_flag();
+        cpu.clear_carry_flag();
     }
     data = data << 1;
     if carry{
         data = data | 1;
     }
-    self.set_register_a(data);
+    cpu.set_register_a(data);
 }
 
-fn ror(&mut self, mode: &AddressingMode) -> u8{
-    let addr: (u16, bool) = self.get_operand_address(mode);
-    let mut data: u8 = self.mem_read(addr);
-    let carry: bool = self.status.contains(CpuFlags::CARRY);
+fn ror(cpu: &mut CPU, mode: &AddressingMode) -> u8{
+    let addr: (u16, bool) = cpu.get_operand_address(mode);
+    let mut data: u8 = cpu.mem_read(addr);
+    let carry: bool = cpu.status.contains(CpuFlags::CARRY);
 
     if data & 1 == 1{
-        self.set_carry_flag();
+        cpu.set_carry_flag();
     }else{
-        self.clear_carry_flag();
+        cpu.clear_carry_flag();
     }
     data = data >> 1;
     if carry{
         data = data | 0b1000_0000;
     }
-    self.mem_write(addr, data);
-    self.update_negative_flags(data);
+    cpu.mem_write(addr, data);
+    cpu.update_negative_flags(data);
     data
 }
 
-fn ror_accumulator(&mut self){
-    let mut data: u8 = self.register_a;
-    let carry: bool = self.status.contains(CpuFlags::CARRY);
+fn ror_accumulator(cpu: &mut CPU){
+    let mut data: u8 = cpu.register_a;
+    let carry: bool = cpu.status.contains(CpuFlags::CARRY);
 
     if data & 1 == 1{
-        self.set_carry_flag();
+        cpu.set_carry_flag();
     }else{
-        self.clear_carry_flag();
+        cpu.clear_carry_flag();
     }
     data = data >> 1;
     if carry{
         data = data | 0b1000_0000;
     }
-    self.set_register_a(data);
+    cpu.set_register_a(data);
 }

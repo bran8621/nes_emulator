@@ -1,4 +1,4 @@
-use crate::cpu::Mem;
+
 use crate::cartridge::Rom;
 use crate::ppu::NesPPU;
 use crate::ppu::PPU;

@@ -1,5 +1,6 @@
 use crate::opcodes;
 use crate::bus::Bus;
+use crate::cpu::InstructionSet;
 use std::collections::HashMap;
 use std::ops::Add;
 
@@ -37,8 +38,10 @@ pub struct CPU {
     pub status: CpuFlags,
     pub program_counter: u16,
     pub stack_pointer: u8,
-    pub bus:Bus
+    pub bus:Bus,
+    pub instructions:InstructionSet
 }
+
 
 #[derive(Debug)]
 #[allow(non_camel_case_types)]
@@ -209,7 +212,7 @@ impl CPU {
     }
 
     fn load_data_and_update_flags(&mut self, mode: &AddressingMode, target: &mut u8) {
-        let (addr, page_cross) = self.get_operand_address(mode)
+        let (addr, page_cross) = self.get_operand_address(mode);
     }
 
     fn perform_operation_and_update_flags<F>(&mut self, mode: &AddressingMode, operation: F)
@@ -225,46 +228,6 @@ impl CPU {
         self.update_zero_and_negative_flags(self.register_a);
     }
 
-    fn ldy(&mut self, mode: &AddressingMode) {
-        let mut data: u8 = 0;
-        self.load_data_and_update_flags(mode, &mut data);
-        self.register_y = data;
-    }
-
-    fn ldx(&mut self, mode: &AddressingMode) {
-        let mut data: u8 = 0;
-        self.load_data_and_update_flags(mode, &mut data);
-        self.register_x = data;
-    }
-
-    fn lda(&mut self, mode: &AddressingMode) {
-        let mut data: u8 = 0;
-        self.load_data_and_update_flags(mode, &mut data);
-        self.set_register_a(data);
-    }
-
-    fn sta(&mut self, mode: &AddressingMode) {
-        let addr = self.get_operand_address(mode);
-        self.mem_write(addr, self.register_a);
-    }
-    /* Logical Operations */
-
-    fn and(&mut self, mode: &AddressingMode) {
-        self.perform_operation_and_update_flags(mode, |a, b| a & b);
-    }
-
-    fn eor(&mut self, mode: &AddressingMode) {
-        self.perform_operation_and_update_flags(mode, |a, b| a ^ b);
-    }
-
-    fn ora(&mut self, mode: &AddressingMode) {
-        self.perform_operation_and_update_flags(mode, |a, b| a | b);
-    }
-
-    fn tax(&mut self) {
-        self.register_x = self.register_a;
-        self.update_zero_and_negative_flags(self.register_x);
-    }
 
     fn update_zero_and_negative_flags(&mut self, result: u8) {
         if result == 0 {
@@ -390,173 +353,6 @@ impl CPU {
         let hi = self.stack_pop() as u16;
 
         hi << 8 | lo
-    }
-
-    fn asl_accumulator(&mut self) {
-        let mut data = self.register_a;
-        if data >> 7 == 1 {
-            self.set_carry_flag();
-        } else {
-            self.clear_carry_flag();
-        }
-        data = data << 1;
-        self.set_register_a(data)
-    }
-
-    fn asl(&mut self, mode: &AddressingMode) -> u8 {
-        let addr = self.get_operand_address(mode);
-        let mut data = self.mem_read(addr);
-        if data >> 7 == 1 {
-            self.set_carry_flag();
-        } else {
-            self.clear_carry_flag();
-        }
-        data = data << 1;
-        self.mem_write(addr, data);
-        self.update_zero_and_negative_flags(data);
-        data
-    }
-
-    fn lsr_accumulator(&mut self) {
-        let mut data = self.register_a;
-        if data & 1 == 1 {
-            self.set_carry_flag();
-        } else {
-            self.clear_carry_flag();
-        }
-        data = data >> 1;
-        self.set_register_a(data)
-    }
-
-    fn lsr(&mut self, mode: &AddressingMode) -> u8 {
-        let addr = self.get_operand_address(mode);
-        let mut data = self.mem_read(addr);
-        if data & 1 == 1 {
-            self.set_carry_flag();
-        } else {
-            self.clear_carry_flag();
-        }
-        data = data >> 1;
-        self.mem_write(addr, data);
-        self.update_zero_and_negative_flags(data);
-        data
-    }
-
-    fn rol(&mut self, mode: &AddressingMode) -> u8 {
-        let addr = self.get_operand_address(mode);
-        let mut data = self.mem_read(addr);
-        let old_carry = self.status.contains(CpuFlags::CARRY);
-
-        if data >> 7 == 1 {
-            self.set_carry_flag();
-        } else {
-            self.clear_carry_flag();
-        }
-        data = data << 1;
-        if old_carry {
-            data = data | 1;
-        }
-        self.mem_write(addr, data);
-        self.update_negative_flags(data);
-        data
-    }
-
-    fn rol_accumulator(&mut self) {
-        let mut data = self.register_a;
-        let old_carry = self.status.contains(CpuFlags::CARRY);
-
-        if data >> 7 == 1 {
-            self.set_carry_flag();
-        } else {
-            self.clear_carry_flag();
-        }
-        data = data << 1;
-        if old_carry {
-            data = data | 1;
-        }
-        self.set_register_a(data);
-    }
-
-    fn ror(&mut self, mode: &AddressingMode) -> u8 {
-        let addr = self.get_operand_address(mode);
-        let mut data = self.mem_read(addr);
-        let old_carry = self.status.contains(CpuFlags::CARRY);
-
-        if data & 1 == 1 {
-            self.set_carry_flag();
-        } else {
-            self.clear_carry_flag();
-        }
-        data = data >> 1;
-        if old_carry {
-            data = data | 0b10000000;
-        }
-        self.mem_write(addr, data);
-        self.update_negative_flags(data);
-        data
-    }
-
-    fn ror_accumulator(&mut self) {
-        let mut data = self.register_a;
-        let old_carry = self.status.contains(CpuFlags::CARRY);
-
-        if data & 1 == 1 {
-            self.set_carry_flag();
-        } else {
-            self.clear_carry_flag();
-        }
-        data = data >> 1;
-        if old_carry {
-            data = data | 0b10000000;
-        }
-        self.set_register_a(data);
-    }
-
-    fn inc(&mut self, mode: &AddressingMode) -> u8 {
-        let addr = self.get_operand_address(mode);
-        let mut data = self.mem_read(addr);
-        data = data.wrapping_add(1);
-        self.mem_write(addr, data);
-        self.update_zero_and_negative_flags(data);
-        data
-    }
-
-    fn dey(&mut self) {
-        self.register_y = self.register_y.wrapping_sub(1);
-        self.update_zero_and_negative_flags(self.register_y);
-    }
-
-    fn dex(&mut self) {
-        self.register_x = self.register_x.wrapping_sub(1);
-        self.update_zero_and_negative_flags(self.register_x);
-    }
-
-    fn dec(&mut self, mode: &AddressingMode) -> u8 {
-        let addr = self.get_operand_address(mode);
-        let mut data = self.mem_read(addr);
-        data = data.wrapping_sub(1);
-        self.mem_write(addr, data);
-        self.update_zero_and_negative_flags(data);
-        data
-    }
-
-    fn pla(&mut self) {
-        let data = self.stack_pop();
-        self.set_register_a(data);
-    }
-
-    fn plp(&mut self) {
-        let flags = self.stack_pop();
-        self.status = CpuFlags::from_bits_truncate(flags);
-        self.status.remove(CpuFlags::BREAK);
-        self.status.insert(CpuFlags::BREAK2);
-    }
-
-    fn php(&mut self) {
-        let mut flags = self.status.clone();
-        flags.insert(CpuFlags::BREAK);
-        flags.insert(CpuFlags::BREAK2);
-        self.stack_push(flags.bits());
     }
 
     fn bit(&mut self, mode: &AddressingMode) {

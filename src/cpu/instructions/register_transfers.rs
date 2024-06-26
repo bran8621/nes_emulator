@@ -5,23 +5,25 @@ TXA: transfer X to accumulator
 TYA: transfer Y to accumulator
 */
 
-fn tax(&mut self) {
-    self.register_x = self.register_a;
-    self.update_zero_and_negative_flags(self.register_x);
+use crate::cpu::CPU;
+
+fn tax(cpu: &mut CPU) {
+    cpu.register_x = cpu.register_a;
+    cpu.update_zero_and_negative_flags(cpu.register_x);
 }
 
-fn tay(&mut self) {
-    self.register_y = self.register_a;
-    self.update_zero_and_negative_flags(self.register_y);
+fn tay(cpu: &mut CPU) {
+    cpu.register_y = cpu.register_a;
+    cpu.update_zero_and_negative_flags(cpu.register_y);
 }
 
-fn txa(&mut self) {
-    self.register_a = self.register_x;
-    self.update_zero_and_negative_flags(self.register_a);
+fn txa(cpu: &mut CPU) {
+    cpu.register_a = cpu.register_x;
+    cpu.update_zero_and_negative_flags(cpu.register_a);
 }
 
-fn tya(&mut self) {
-    self.register_a = self.register_y;
-    self.update_zero_and_negative_flags(self.register_a);
+fn tya(cpu: &mut CPU) {
+    cpu.register_a = cpu.register_y;
+    cpu.update_zero_and_negative_flags(cpu.register_a);
 }
 

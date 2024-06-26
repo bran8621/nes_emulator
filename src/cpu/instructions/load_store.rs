@@ -7,35 +7,37 @@ STX: store X register
 STY: store Y register
 */
 
-fn lda(&mut self, mode: &AddressingMode) {
+use crate::cpu::CPU;
+
+fn lda(cpu: &mut CPU, mode: &AddressingMode) {
         let mut data: u8 = 0;
-        self.load_data_and_update_flags(mode, &mut data);
-        self.set_register_a(data);
+        cpu.load_data_and_update_flags(mode, &mut data);
+        cpu.set_register_a(data);
 }
 
-fn ldx(&mut self, mode: &AddressingMode) {
+fn ldx(cpu: &mut CPU, mode: &AddressingMode) {
         let mut data: u8 = 0;
-        self.load_data_and_update_flags(mode, &mut data);
-        self.register_x = data;
+        cpu.load_data_and_update_flags(mode, &mut data);
+        cpu.register_x = data;
 }
 
-fn ldy(&mut self, mode: &AddressingMode) {
+fn ldy(cpu: &mut CPU, mode: &AddressingMode) {
         let mut data: u8 = 0;
-        self.load_data_and_update_flags(mode, &mut data);
-        self.register_y = data;
+        cpu.load_data_and_update_flags(mode, &mut data);
+        cpu.register_y = data;
 }
 
-fn sta(&mut self, mode: &AddressingMode) {
-        let addr = self.get_operand_address(mode);
-        self.mem_write(addr, self.register_a);
+fn sta(cpu: &mut CPU, mode: &AddressingMode) {
+        let addr = cpu.get_operand_address(mode);
+        cpu.mem_write(addr, cpu.register_a);
 }
 
-fn stx(&mut self, mode: &AddressingMode) {
-        let addr = self.get_operand_address(mode);
-        self.mem_write(addr, self.register_x);
+fn stx(cpu: &mut CPU, mode: &AddressingMode) {
+        let addr = cpu.get_operand_address(mode);
+        cpu.mem_write(addr, cpu.register_x);
 }
 
-fn sty(&mut self, mode: &AddressingMode) {
-        let addr = self.get_operand_address(mode);
-        self.mem_write(addr, self.register_y);
+fn sty(cpu: &mut CPU, mode: &AddressingMode) {
+        let addr = cpu.get_operand_address(mode);
+        cpu.mem_write(addr, cpu.register_y);
 }

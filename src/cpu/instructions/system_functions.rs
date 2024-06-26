@@ -7,18 +7,18 @@ RTI: return from interrupt
 use crate::cpu::CPU;
 
 fn brk(cpu: &mut CPU){
-    cpu.program_counter += 1;
-    cpu.status.insert(CpuFlags::BREAK);
-    cpu.stack_push_u16(cpu.program_counter);
-    cpu.stack_push(cpu.status.bits());
-    cpu.status.insert(CpuFlags::INTERRUPT_DISABLE);
-    cpu.program_counter = cpu.mem_read_u16(0xFFFE);
+    self.program_counter += 1;
+    self.status.insert(CpuFlags::BREAK);
+    self.stack_push_u16(self.program_counter);
+    self.stack_push(self.status.bits());
+    self.status.insert(CpuFlags::INTERRUPT_DISABLE);
+    self.program_counter = self.mem_read_u16(0xFFFE);
 }
-fn rti(cpu: &mut cpu){
-    let flags_bits = cpu.stack_pop();
+fn rti(&mut self){
+    let flags_bits = self.stack_pop();
     let flags = CpuFlags::from_bits_truncate(flags_bits);
-    cpu.status = flags;
-    cpu.status.remove(CpuFlags::BREAK);
-    cpu.status.insert(CpuFlags::BREAK2);
-    cpu.program_counter = cpu.stack_pop_u16();
+    self.status = flags;
+    self.status.remove(CpuFlags::BREAK);
+    self.status.insert(CpuFlags::BREAK2);
+    self.program_counter = self.stack_pop_u16();
 }
