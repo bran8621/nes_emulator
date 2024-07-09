@@ -1,6 +1,3 @@
-//use bytes::Bytes;
-use std::convert::TryFrom;
-
 const NES_TAG: [u8; 4] = [0x4E, 0x45, 0x53, 0x1A];
 const PRG_ROM_PAGE_SIZE: usize = 16384;
 const CHR_ROM_PAGE_SIZE: usize = 8192;
@@ -31,29 +28,36 @@ impl Rom {
             return Err("Unsupported iNES version".to_string());
         }
 
-        let screen_mirroring = match (raw[6] & 0b1000 != 0, raw[6] & 0b1 != 0) {
+        let four_screen = raw[6] & 0b1000 != 0;
+        let vertical_mirroring = raw[6] & 0b1 != 0;
+        let screen_mirroring = match (four_screen, vertical_mirroring) {
             (true, _) => Mirroring::FourScreen,
             (false, true) => Mirroring::Vertical,
-            _ => Mirroring::Horizontal,
+            (false, false) => Mirroring::Horizontal,
         };
 
-        let prg_rom_page_count = usize::try_from(raw[4]).unwrap_or(0) * PRG_ROM_PAGE_SIZE;
-        let chr_rom_page_count = usize::try_from(raw[5]).unwrap_or(0) * CHR_ROM_PAGE_SIZE;
+        let prg_rom_size = raw[4] as usize * PRG_ROM_PAGE_SIZE;
+        let chr_rom_size = raw[5] as usize * CHR_ROM_PAGE_SIZE;
+
         let skip_trainer = raw[6] & 0b100 != 0;
-        let prg_rom_start = 16 + if skip_trainer { 512 } else { 0 };
-        let chr_rom_start = prg_rom_start + prg_rom_page_count;
+
+        let prg_rom_start = 16 + if skip_trainer { 512 } else { 528 };
+        let chr_rom_start = prg_rom_start + prg_rom_size;
+
+        let prg_rom = raw[prg_rom_start..(prg_rom_start + prg_rom_size)].to_vec();
+        let chr_rom = raw[chr_rom_start..(chr_rom_start + chr_rom_size)].to_vec();
 
         Ok(Rom {
-            prg_rom: raw[prg_rom_start..(prg_rom_start + prg_rom_page_count)].to_vec(),
-            chr_rom: raw[chr_rom_start..(chr_rom_start + chr_rom_page_count)].to_vec(),
+            prg_rom,
+            chr_rom,
             mapper,
             mirroring: screen_mirroring,
         })
     }
 }
 
-
 pub mod test {
+
     use super::*;
 
     struct TestRom {
@@ -107,8 +111,8 @@ pub mod test {
 
         let rom: Rom = Rom::new(&test_rom).unwrap();
 
-        assert_eq!(rom.chr_rom, vec![2; 1 * CHR_ROM_PAGE_SIZE]);
-        assert_eq!(rom.prg_rom, vec![1; 2 * PRG_ROM_PAGE_SIZE]);
+        assert_eq!(rom.chr_rom, vec!(2; 1 * CHR_ROM_PAGE_SIZE));
+        assert_eq!(rom.prg_rom, vec!(1; 2 * PRG_ROM_PAGE_SIZE));
         assert_eq!(rom.mapper, 3);
         assert_eq!(rom.mirroring, Mirroring::Vertical);
     }
@@ -141,11 +145,12 @@ pub mod test {
 
         let rom: Rom = Rom::new(&test_rom).unwrap();
 
-        assert_eq!(rom.chr_rom, vec![2; 1 * CHR_ROM_PAGE_SIZE]);
-        assert_eq!(rom.prg_rom, vec![1; 2 * PRG_ROM_PAGE_SIZE]);
+        assert_eq!(rom.chr_rom, vec!(2; 1 * CHR_ROM_PAGE_SIZE));
+        assert_eq!(rom.prg_rom, vec!(1; 2 * PRG_ROM_PAGE_SIZE));
         assert_eq!(rom.mapper, 3);
         assert_eq!(rom.mirroring, Mirroring::Vertical);
     }
+
     #[test]
     fn test_nes2_is_not_supported() {
         let test_rom = create_rom(TestRom {
@@ -163,6 +168,3 @@ pub mod test {
         }
     }
 }
-
-
-       

@@ -2,9 +2,9 @@ pub mod cpu;
 pub mod opcodes;
 pub mod bus; 
 pub mod cartridge;
-pub mod instructions;
+pub mod ppu;
+pub mod joypad; 
 
-use crate::CPU::cpu::Mem;
 use cpu::CPU;
 use cartridge::Rom;
 use bus::Bus;
