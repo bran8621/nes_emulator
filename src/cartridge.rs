@@ -17,7 +17,7 @@ pub struct Rom {
 }
 
 impl Rom {
-    pub fn new(raw: &[u8]) -> Result<Rom, String> {
+    pub fn new(raw: &Vec<u8>) -> Result<Rom, String> {
         if !raw.starts_with(&NES_TAG) {
             return Err("Not an iNES file".to_string());
         }
@@ -26,6 +26,11 @@ impl Rom {
         let ines_version = (raw[7] >> 2) & 0b11;
         if ines_version != 0 {
             return Err("Unsupported iNES version".to_string());
+        }
+        
+        let nes2_format = raw[7] & 0b11;
+        if nes2_format != 0 {
+            return Err("NES2.0 format is not supported".to_string());
         }
 
         let four_screen = raw[6] & 0b1000 != 0;
@@ -41,7 +46,7 @@ impl Rom {
 
         let skip_trainer = raw[6] & 0b100 != 0;
 
-        let prg_rom_start = 16 + if skip_trainer { 512 } else { 528 };
+        let prg_rom_start = 16 + if skip_trainer { 512 } else { 0 };
         let chr_rom_start = prg_rom_start + prg_rom_size;
 
         let prg_rom = raw[prg_rom_start..(prg_rom_start + prg_rom_size)].to_vec();

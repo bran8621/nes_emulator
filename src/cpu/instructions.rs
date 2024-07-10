@@ -127,6 +127,7 @@ pub fn asl_accumulator(&mut self){
         self.clear_carry_flag();
     }
 }
+
 pub fn lsr(&mut self, mode: &AddressingMode) -> u8 {
     let (addr, _) = self.get_operand_address(mode);
     let mut data: u8 = self.mem_read(addr);
@@ -140,6 +141,7 @@ pub fn lsr(&mut self, mode: &AddressingMode) -> u8 {
     self.update_zero_and_negative_flags(data);
     data
 }
+
 pub fn lsr_accumulator(&mut self){
     let mut data: u8 = self.register_a;
     if data & 1 == 1{
@@ -150,6 +152,7 @@ pub fn lsr_accumulator(&mut self){
     data = data >> 1;
     self.set_register_a(data);
 }
+
 pub fn rol(&mut self, mode: &AddressingMode) -> u8 {
     let (addr, _) = self.get_operand_address(mode);
     let mut data: u8 = self.mem_read(addr);
@@ -167,6 +170,7 @@ pub fn rol(&mut self, mode: &AddressingMode) -> u8 {
     self.update_negative_flags(data);
     data
 }
+
 pub fn rol_accumulator(&mut self){
     let mut data: u8 = self.register_a;
     let carry: bool = self.status.contains(CpuFlags::CARRY);
@@ -181,6 +185,7 @@ pub fn rol_accumulator(&mut self){
     }
     self.set_register_a(data);
 }
+
 pub fn ror(&mut self, mode: &AddressingMode) -> u8{
     let (addr, _): (u16, bool) = self.get_operand_address(mode);
     let mut data: u8 = self.mem_read(addr);
@@ -198,6 +203,7 @@ pub fn ror(&mut self, mode: &AddressingMode) -> u8{
     self.update_negative_flags(data);
     data
 }
+
 pub fn ror_accumulator(&mut self){
     let mut data: u8 = self.register_a;
     let carry: bool = self.status.contains(CpuFlags::CARRY);
@@ -211,7 +217,9 @@ pub fn ror_accumulator(&mut self){
         data = data | 0b1000_0000;
     }
     self.set_register_a(data);
-}/*
+}
+
+/*
 JMP: jump to anotherlocation
 JSR: jump to a subroutine
 RTS: return from a subroutine
@@ -221,6 +229,7 @@ pub fn jump_absolute(&mut self, mode: &AddressingMode) {
     let (addr, _) = self.get_operand_address(mode);
     self.program_counter = addr;
 }
+
 pub fn jump_indirect(&mut self) {
     let mem_address = self.mem_read_u16(self.program_counter);
     let indirect_ref = if mem_address & 0x00FF == 0x00FF {
@@ -232,14 +241,18 @@ pub fn jump_indirect(&mut self) {
     };
     self.program_counter = indirect_ref; 
 }
+
 pub fn jsr(&mut self){
     self.stack_push_u16(self.program_counter+1);
     let target_address = self.mem_read_u16(self.program_counter);
     self.program_counter = target_address;
 }
+
 pub fn rts(&mut self){
     self.program_counter = self.stack_pop_u16() + 1;
-}/*
+}
+
+/*
 LDA: load accumulator
 LDX: load X register
 LDY: load Y register
@@ -249,13 +262,14 @@ STY: store Y register
 */
 
 pub fn lda(&mut self, mode: &AddressingMode) {
-    let (addr, page_cross) = self.get_operand_address(&mode);
+    let (addr, page_cross) = self.get_operand_address(mode);
     let value = self.mem_read(addr);
     self.set_register_a(value);
-    if page_cross{
+    if page_cross {
         self.bus.tick(1);
     }
 }
+
 pub fn ldx(&mut self, mode: &AddressingMode) {
     let (addr, page_cross) = self.get_operand_address(mode);
     let data = self.mem_read(addr);
@@ -266,6 +280,7 @@ pub fn ldx(&mut self, mode: &AddressingMode) {
     }
 
 }
+
 pub fn ldy(&mut self, mode: &AddressingMode) {
     let (addr, page_cross) = self.get_operand_address(mode);
     let data = self.mem_read(addr);
@@ -275,18 +290,23 @@ pub fn ldy(&mut self, mode: &AddressingMode) {
         self.bus.tick(1);
     }
 }
+
 pub fn sta(&mut self, mode: &AddressingMode) {
         let (addr, _) = self.get_operand_address(mode);
         self.mem_write(addr, self.register_a);
 }
+
 pub fn stx(&mut self, mode: &AddressingMode) {
         let (addr, _) = self.get_operand_address(mode);
         self.mem_write(addr, self.register_x);
 }
+
 pub fn sty(&mut self, mode: &AddressingMode) {
         let (addr, _) = self.get_operand_address(mode);
         self.mem_write(addr, self.register_y);
-}/*
+}
+
+/*
 TSX: transfer stack pointer to X
 TXS: transfer X to stack pointer
 PHA: push accumulator on stack
@@ -302,23 +322,28 @@ pub fn php(&mut self) {
         flags.insert(CpuFlags::BREAK2);
         self.stack_push(flags.bits());
 }
+
 pub fn pla(&mut self) {
         let data = self.stack_pop();
         self.set_register_a(data);
 }
+
 pub fn plp(&mut self) {
         let flags = self.stack_pop();
         self.status = CpuFlags::from_bits_truncate(flags);
         self.status.remove(CpuFlags::BREAK);
         self.status.insert(CpuFlags::BREAK2);
 }
+
 pub fn pha(&mut self) {
         self.stack_push(self.register_a);
 }
+
 pub fn tsx(&mut self) {
         self.register_x = self.stack_pointer;
         self.update_zero_and_negative_flags(self.register_x);
 }
+
 pub fn txs(&mut self) {
         self.stack_pointer = self.register_x;
 }
@@ -336,10 +361,12 @@ pub fn inx(&mut self){
         self.register_x = self.register_x.wrapping_add(1);
         self.update_zero_and_negative_flags(self.register_x);
 }
+
 pub fn iny(&mut self) {
         self.register_y = self.register_y.wrapping_add(1);
         self.update_zero_and_negative_flags(self.register_y);
 }
+
 pub fn inc(&mut self, mode: &AddressingMode) -> u8 {
         let (addr, _) = self.get_operand_address(mode);
         let mut data = self.mem_read(addr);
@@ -348,14 +375,17 @@ pub fn inc(&mut self, mode: &AddressingMode) -> u8 {
         self.update_zero_and_negative_flags(data);
         data
 }
+
 pub fn dex(&mut self) {
         self.register_x = self.register_x.wrapping_sub(1);
         self.update_zero_and_negative_flags(self.register_x);
 }
+
 pub fn dey(&mut self) {
         self.register_y = self.register_y.wrapping_sub(1);
         self.update_zero_and_negative_flags(self.register_y);
 }
+
 pub fn dec(&mut self, mode: &AddressingMode) -> u8 {
         let (addr, _) = self.get_operand_address(mode);
         let mut data = self.mem_read(addr);

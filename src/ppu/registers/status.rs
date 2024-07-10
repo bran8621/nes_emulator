@@ -13,27 +13,27 @@ bitflags! {
 
 impl StatusRegister {
     pub fn new() -> Self {
-        StatusRegister::from_bits_truncate(0)
+        StatusRegister::from_bits_truncate(0b00000000)
     }
 
     pub fn set_vblank_status(&mut self, status: bool) {
-        self.set(Self::VBLANK_STARTED, status);
+        self.set(StatusRegister::VBLANK_STARTED, status);
     }
 
     pub fn set_sprite_zero_hit(&mut self, status: bool) {
-        self.set(Self::SPRITE_ZERO_HIT, status);
+        self.set(StatusRegister::SPRITE_ZERO_HIT, status);
     }
 
     pub fn set_sprite_overflow(&mut self, status: bool) {
-        self.set(Self::SPRITE_OVERFLOW, status);
+        self.set(StatusRegister::SPRITE_OVERFLOW, status);
     }
 
     pub fn reset_vblank_status(&mut self) {
-        self.remove(Self::VBLANK_STARTED);
+        self.remove(StatusRegister::VBLANK_STARTED);
     }
 
     pub fn is_in_vblank(&self) -> bool {
-        self.contains(Self::VBLANK_STARTED)
+        self.contains(StatusRegister::VBLANK_STARTED)
     }
 
     pub fn snapshot(&self) -> u8 {

@@ -34,7 +34,7 @@ impl ControlRegister {
         }
     }
 
-    pub fn sprite_pattern_addr(&self) -> u16 {
+    pub fn sqrt_pattern_addr(&self) -> u16 {
         if self.contains(ControlRegister::SPRITE_PATTERN_ADDR) {
             0x1000
         } else {

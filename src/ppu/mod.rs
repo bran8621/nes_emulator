@@ -278,6 +278,22 @@ pub mod test {
     }
 
     #[test]
+    fn test_vram_address_increment() {
+        let mut ppu = NesPPU::new_empty_rom();
+        ppu.write_to_ctrl(0x00); // increment by 1
+        ppu.write_to_ppu_addr(0x23);
+        ppu.write_to_ppu_addr(0x05);
+        ppu.write_to_data(0x66);
+        assert_eq!(ppu.addr.get(), 0x2306);
+
+        ppu.write_to_ctrl(0x04); // increment by 32
+        ppu.write_to_ppu_addr(0x23);
+        ppu.write_to_ppu_addr(0x05);
+        ppu.write_to_data(0x66);
+        assert_eq!(ppu.addr.get(), 0x2305 + 32);
+    }
+
+    #[test]
     fn test_ppu_vram_reads_step_32() {
         let mut ppu = NesPPU::new_empty_rom();
         ppu.write_to_ctrl(0b100);
@@ -298,7 +314,7 @@ pub mod test {
     //   [0x2000 A ] [0x2400 a ]
     //   [0x2800 B ] [0x2C00 b ]
     #[test]
-    fn test_vram_Horizontal_mirror() {
+    fn test_vram_horizontal_mirror() {
         let mut ppu = NesPPU::new_empty_rom();
         ppu.write_to_ppu_addr(0x24);
         ppu.write_to_ppu_addr(0x05);
@@ -432,4 +448,5 @@ pub mod test {
         ppu.write_to_oam_addr(0x11);
         ppu.write_to_oam_addr(0x66);
     }
+
 }

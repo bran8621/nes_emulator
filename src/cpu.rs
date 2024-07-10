@@ -27,7 +27,7 @@ bitflags! {
 
 const STACK: u16 = 0x0100;
 const STACK_RESET: u8 = 0xfd;
-const INITIAL_STATUS: u8 = 0b100100;
+
 
 pub struct CPU<'a> {
     pub register_a: u8,
@@ -190,6 +190,7 @@ impl<'a> CPU<'a> {
     pub fn load_and_run(&mut self, program: Vec<u8>) {
         self.load(program);
         self.reset();
+        self.program_counter = 0x0600;
         self.run();
     }
 
@@ -209,6 +210,19 @@ impl<'a> CPU<'a> {
         self.program_counter = self.mem_read_u16(0xFFFC);
     }
 
+    fn interrupt(&mut self, interrupt: interrupt::Interrupt) {
+        self.stack_push_u16(self.program_counter);
+        let mut flag = self.status.clone();
+        flag.set(CpuFlags::BREAK, interrupt.b_flag_mask & 0b010000 == 1);
+        flag.set(CpuFlags::BREAK2, interrupt.b_flag_mask & 0b100000 == 1);
+
+        self.stack_push(flag.bits);
+        self.status.insert(CpuFlags::INTERRUPT_DISABLE);
+
+        self.bus.tick(interrupt.cpu_cycles);
+        self.program_counter = self.mem_read_u16(interrupt.vector_addr);
+    }
+
     pub fn run(&mut self) {
         self.run_with_callback(|_| {});
     }
@@ -219,11 +233,17 @@ impl<'a> CPU<'a> {
         let ref opcodes: HashMap<u8, &'static opcodes::OpCode> = *opcodes::OPCODES_MAP;
 
         loop {
+            if let Some(_nmi) = self.bus.poll_nmi_status() {
+                self.interrupt(interrupt::NMI);
+            }
+            callback(self);
             let code = self.mem_read(self.program_counter);
             self.program_counter += 1;
             let program_counter_state = self.program_counter;
 
-            let opcode = opcodes.get(&code).unwrap();
+            let opcode = opcodes
+            .get(&code)
+            .expect(&format!("OpCode {:x} is not recognized", code));
 
             match code {
                 0xa9 | 0xa5 | 0xb5 | 0xad | 0xbd | 0xb9 | 0xa1 | 0xb1 => self.lda(&opcode.mode),
